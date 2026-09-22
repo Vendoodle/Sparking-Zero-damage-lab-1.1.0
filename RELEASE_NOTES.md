@@ -1,41 +1,61 @@
-# Sparking! ZERO Community Damage Lab — 1.1.0
+# Sparking! ZERO Community Damage Lab — v1.1.1
 
 **This is the finished version of the offline damage calculator and character reference I built for Dragon Ball: Sparking! ZERO.**
 
-Pick an attacker, defender, costume and move, then compare the result. The project combines manual gameplay testing, community reference information and data pulled from game build **24953175**, covering 241 playable fighters and forms.
+v1.1.1 is mostly the result of finally making the information that was already in the project talk to itself properly. The calculator now understands more of the native move data, the Lab is actually useful as a notebook, and the number on screen can explain where it came from instead of living in a separate universe from the research behind it.
 
-## What this release contains
+The data still targets **game build 24953175** and covers **241 playable fighters and forms**. v1.1.0 is staying up too; this is a new release, not a replacement for the old files.
 
-- **Damage Calculator:** handles the move you picked, attacker and defender stats, class tuning, costume replacements, supported skills/passives, low-health states, Sparking, Sparking Boost and its after-effect, Boost Super, and matchup DP scaling where it applies.
-- **Character Map:** browse fighters/forms and see their moves, skills, supported passive bonuses, Wickedness levels, costume relationships and transformation access where I could identify it.
-- **Costumes & Effects:** tracks outfits that actually change gameplay, including replacement moves and changes tied to transformations.
-- **Devilmite Beam:** uses the recorded Wickedness data anywhere I had enough information to calculate it. Confirmed immune characters are level 0, and some resistance combinations show a range instead of pretending there is one exact answer.
-- **Advanced / Lab:** contains the tests, sources and notes behind the calculator, including places where the available data still leaves gaps.
-- **Cursed Internals:** exposes the uglier records and calculation details underneath the normal UI. There is also an entire separate technical research console tucked inside if you really want to dig through the machinery.
-- **Giants / Rush attacks:** 1.1.0 finishes the giant/Rush work I was able to resolve. Some Rush attacks can still play their full cinematic against giants; others only land their opening hit before the cinematic is rejected, so those cases are handled separately. That covers 2,838 neutral Rush/giant combinations, including six supported giant cinematic variants and Tapion’s calibrated one-hit giant route.
+## What changed
 
-## Reading the results
+- The calculator no longer demands per-hit data just because a move has an animation with multiple hits. If the game gives us a valid total and the selected mechanic can work from that total, the calculator can use it without inventing fake hit values.
+- Normal Throws now use their native move data across the roster where the execution is understood. Several other source-backed named moves and numbered sequences were recovered too.
+- Buffs now use the fields they actually modify instead of being treated like generic percentages slapped onto an already-rounded damage number.
+- Known source/reference disagreements stay visible instead of being quietly massaged until the numbers look prettier.
+- Existing support for costume replacements, DP scaling, armor, extra-Ki, Devilmite/Wickedness and giant cinematic/contact behavior is still here.
 
-If the calculator knows the answer, it gives you the best result I could support from the available data. If it doesn’t, it says so.
+One of the checks that finally nailed the Throw path was Tora against Goku (Z - Early):
 
-Results are labeled as reconstructed, recorded checks, estimates or incomplete. Missing information stays missing instead of borrowing another move’s damage just to fill the box. A range means there is still something I can’t resolve cleanly enough to collapse it into one number.
+| **Tora’s state** | **Damage** |
+| --- | --- |
+| Neither | 1,188 |
+| Saiyan Spirit | 1,313 |
+| Low health | 1,313 |
+| Both | 1,438 |
 
-**Contact only** means the opening contact damage against a giant. It does not include later knockback or terrain collisions. If a damage-changing state still can’t be calculated reliably for that contact-only case, it stays incomplete.
+That sequence matches the reconstructed native path and shows why the calculator should work from the underlying move data rather than multiplying a rounded display number. It is evidence for this interaction, not a claim that every buff in the game behaves the same way.
 
-That still doesn’t mean every possible matchup or engine behavior has been reproduced. The data in this release targets game build **24953175**.
+## The Lab is finally a Lab
 
-## Choose a download
+- **Manual Tests:** now opens as the actual global lab notebook. You can see the recorded gameplay tests in one place, filter them down to the current matchup, or clear the filter and browse everything. Reconstructed values are not presented as if they were manual observations.
+- **Sources & Provenance:** now follows the current calculation. It shows the move representation, baseline/source, modifiers being used, matchup/special route, supporting observations and whatever uncertainty is still left.
+- **Confidence / evidence:** now uses the same evidence model across the calculator, Manual Tests and provenance. A character baseline, matchup check and skill-interaction check no longer get flattened into the same vague idea of “tested.”
+- **Cursed Internals:** is still there. The normal provenance view is readable; the raw machinery stays in the basement for anyone who insists on opening the basement.
 
-- **Windows x64:** `SparkingZeroCommunityDamageLab-1.1.0-win-x64.zip`. Extract it and open `SparkingZeroCalculator.exe`; no separate .NET or game installation is required.
-- **Linux x86-64:** choose either `SparkingZeroCommunityDamageLab-1.1.0-linux-x64-wine-r1.zip` or `SparkingZeroCommunityDamageLab-1.1.0-linux-x64-wine-r1.tar.gz`. Extract it and run `sh ./start.sh`. Wine 11.0 and the app runtime are bundled; compatible Linux system/desktop libraries are still required. The earlier Linux assets remain only for existing links; choose **r1**.
-- **macOS:** no validated macOS package is included in this release.
+Also fixed: the DP 10 cutoff, the nearly invisible disabled extra-Ki text, and the stale version label in the technical research console.
 
-Both packages work offline.
+## What it still does not pretend to know
 
-Windows hashes are in `CHECKSUMS.sha256`; Linux r1 hashes are in `LINUX-r1-CHECKSUMS.sha256`. GitHub’s automatic **Source code** archives contain repository documentation rather than the application. Source code is not included in the downloadable packages.
+Some conditional Throws, incomplete Rush strings, beam/repeat behavior and weird special mechanics are still provisional or unresolved. Those are current limits of the model, not promises that another update is coming.
 
-## Release state
+Recorded/reference totals are still useful when the full native path is not available, but that does not automatically make every buff transformation safe. If two sources disagree, the disagreement stays visible.
 
-**1.1.0 is where I’m calling the project finished for now.** I don’t have a planned update schedule and I’m not promising continued development. If the community actually ends up interested enough to pull me back into it later, I may come back to it, but this release stands on what it contains now.
+**Contact only** still means the opening contact against a giant. It does not include later knockback or terrain collisions. Partial cinematics do not quietly absorb unresolved landing damage either.
 
-The project changed so fast that the intermediate builds were never a neat public release sequence. Public sharing basically stopped around 1.0.2, so 1.1.0 is the finished state of the project rather than the next patch in a normal update cycle.
+The goal is the same as before: if the tool knows enough to give you a defensible number, it does. If it does not, it tells you instead of making one up.
+
+## Downloads
+
+**Windows x64**: `SparkingZeroCommunityDamageLab-1.1.1-win-x64.zip`. Extract the ZIP and run `SparkingZeroCalculator.exe`. No separate .NET install or copy of the game is needed.
+
+**Linux x86-64**: `SparkingZeroCommunityDamageLab-1.1.1-linux-x64-wine.zip` or the matching tar.gz. Extract it and run `sh ./start.sh`. Wine 11.0 and the app runtime are bundled; compatible desktop/system libraries are still required.
+
+**macOS**: there is no validated macOS package.
+
+Both supported builds contain the same offline v1.1.1 application and data.
+
+Release hashes are included in CHECKSUMS.sha256.
+
+GitHub’s automatic Source code downloads are the repository documentation, not the program. Use the release packages if you actually want the calculator.
+
+**v1.1.0 is still available.** If you want both versions, extract v1.1.1 into its own folder and keep them side by side.

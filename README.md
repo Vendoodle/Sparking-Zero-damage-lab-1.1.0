@@ -2,69 +2,150 @@
 
 I made an offline damage calculator and character reference for **Dragon Ball: Sparking! ZERO**.
 
-Pick an attacker, defender, costume and move, set whatever states are actually active, and let the calculator do the math. You can compare matchup DP scaling on or off, account for the supported buffs/passives/Sparking states, check costume changes, or just use the Character Map when you want to know what a character actually has without digging through a pile of separate resources.
+**v1.1.1 is the finished version.**
 
-The data here is built around **game-data build 24953175** and covers **241 playable fighters and forms**.
+Pick an attacker, defender, costume and move, turn on whatever is actually active, and it gives you the damage. There’s also a Character Map, costume/move changes, Wickedness data, the manual testing behind everything, and a progressively more cursed amount of technical information if you keep digging.
 
-**1.1.0 is where I’m calling the project finished for now.** I don’t have an update schedule and I’m not promising continued development. If people actually end up caring about it enough to drag me back into the rabbit hole later, maybe I come back to it. No promises.
+The data is built around **game-data build 24953175** and covers **241 playable fighters and forms**.
+
+This whole thing started because I like Supreme Kai.
+
+That’s it. That’s the origin story.
+
+*“Why the hell does this tiny purple Kai hit like a freight train?”*
+
+That sent me down a rabbit hole.
+
+Then I made a spreadsheet.
+
+Then the spreadsheet got bigger.
+
+Now there is software.
+
+I have no one to blame but myself.
 
 ## What’s actually in here
 
-- **Damage Calculator:** this is the part that does all the math I got tired of doing by hand. It handles the selected move, attacker stats/class tuning, defender resistances, costume replacements, supported skills and passives, low-health states, Sparking, Sparking Boost, its after-effect, Boost Super, and matchup DP scaling where it applies.
-- **Character Map:** browse every fighter/form and see their moves, skills, supported passive bonuses, Wickedness level, costume relationships and transformation access where I could identify it.
-- **Costumes & Effects:** because some outfits are apparently not content with just being outfits. This tracks the ones with actual gameplay changes, including replacement moves and changes that carry into transformations.
-- **Wickedness / Devilmite Beam:** recorded Wickedness levels, confirmed level-0 immunity, and damage calculations where the available data supports them. If physical and energy resistance leave more than one possible answer, you get a range instead of a fake precise number.
-- **Advanced / Lab:** the tests, sources, calibration work and notes behind the calculator. If you want to know why I trust a number—or why I don’t—this is where that stuff lives.
-- **Cursed Internals:** exactly what it sounds like. This is the much less friendly view of the records and calculations under the hood. If you keep digging, there is also an entire separate technical research console hidden in there. You do not need any of this to use the normal calculator. It is there for the people who see “show me the cursed internals” and immediately click it.
+- **Damage Calculator:** pick the matchup and move, set whatever effects are active, and get the result. It handles the supported attack modifiers, defenses/resistances, costumes, low-health effects, Sparking states, extra-stock Sparking Boost, extra-Ki Super boosting and DP matchup scaling where they actually apply.
+- **Character Map:** lets you browse the fighters/forms and see their moves, skills, supported passives, Wickedness, costume relationships and transformation access where I could identify it.
+- **Costumes & Effects:** because some costumes are apparently incapable of just being cosmetic. This shows the ones that actually change moves or transformation behavior.
+- **Manual Tests:** the lab notebook. These are the actual gameplay tests I performed or recorded, all in one place. You can filter them down to the current matchup or just browse everything. Reconstructed values are not mixed in and presented as if I manually tested them.
+- **Sources & Provenance:** if you want to know why the calculator believes a number, this is where you look. It shows what move representation is being used, where the baseline came from, what modifiers were applied, what manual evidence exists and what parts are still uncertain.
+- **Cursed Internals:** exactly what it sounds like. Rawer data, calculations and the ugly machinery behind the friendly result. There’s also an entire separate research console hiding in there because apparently we lost control of the situation at some point.
 
-## Giants and Rush attacks
+You absolutely do not need Cursed Internals to use the calculator.
 
-Giants were the last annoying thing I wanted to finish before calling this done.
+Some of you are going to click it immediately anyway.
 
-Some Rush attacks can still play their full cinematic against a giant. Others only land the opening hit before the cinematic gets rejected. **1.1.0 handles those separately instead of pretending they behave the same way.**
+## The damage model got a lot less stupid
 
-That work covers **2,838 neutral Rush/giant combinations**. Six Rush variants have supported giant cinematic routes, and Tapion’s **Brave Sword Attack** has its own calibrated one-hit giant route.
+One of the biggest changes in v1.1.1 is that the calculator now uses the amount of information the calculation actually needs.
 
-If the calculator says **Contact only**, that means exactly that: the opening contact damage. It does not quietly add later knockback or terrain collision damage.
+Previously, some moves could have a perfectly good recorded damage value and still become unavailable as soon as a buff was selected because the calculator wanted per-hit data it didn’t actually need.
 
-And if a buff/boost state changes damage but I do not have enough information to calculate that specific rejected-contact interaction accurately, the result stays **incomplete**.
+Throws were the glaring example.
 
-## If the tool doesn’t know, it tells you
+The game already had native Throw data. The calculator just wasn’t using it.
 
-This was important to me from the beginning: I would rather give you **no number** than give you a convincing-looking number I cannot actually support.
+So now, if the source gives us a valid aggregate value, the calculator can use that aggregate value where the mechanic allows it. It does not invent fake hit values just because an animation happens to hit more than once.
 
-When the full calculation path can be reconstructed from the game data, that is what the calculator uses. Manual gameplay tests are there to check the reconstruction and fill in pieces the files do not explain cleanly. Community/reference totals are still useful where the internal path is incomplete.
+If a mechanic genuinely needs individual damage terms, though, those still have to be known.
 
-Results are labeled so you can tell whether something is reconstructed, a recorded check, an estimate or incomplete. Missing information stays missing instead of borrowing some other move’s damage just to fill the box. A range means there is still a detail I cannot resolve honestly enough to collapse it into one number.
+**use the data we actually have instead of demanding data the calculation doesn’t need.**
 
-This is a community research tool, not a claim that I have reproduced every single thing the game engine can possibly do.
+Buffs got the same treatment. They now use the fields they actually modify instead of getting treated like generic percentages slapped onto an already-rounded damage number.
+
+For example, I manually checked Tora’s Throw against Goku (Z - Early):
+
+| **Tora’s state** | **Damage** |
+| --- | --- |
+| Neither | 1,188 |
+| Saiyan Spirit | 1,313 |
+| Low health | 1,313 |
+| Both | 1,438 |
+
+Those values line up with the game data and the reconstructed calculation path.
+
+That does not mean every buff works like this.
+
+It means this one does, and now the calculator knows why.
+
+## If it doesn’t know, it says so
+
+This has been one of my rules for the project from the beginning:
+
+**I would rather give you no number than give you a convincing fake one.**
+
+v1.1.1 is better at distinguishing between something reconstructed from the game data, something directly observed in testing, something supported but still provisional, something where more than one answer is possible, and something the calculator genuinely cannot resolve yet.
+
+Not every fighter/move/effect combination needs its own manual test before the calculator can use a rule that is already supported by the underlying data.
+
+At the same time, one successful test does not magically prove every similar-looking interaction in the game.
+
+The app keeps those distinctions now.
+
+Manual Tests, Sources & Provenance and the calculator result all use the same evidence model, so the number and the reason for trusting that number are no longer living in separate universes.
+
+Recorded/reference totals are also kept when they are still useful. If the native reconstruction and an existing reference disagree, that disagreement stays visible instead of quietly changing one number until everything looks pretty.
+
+Some conditional Throws, incomplete Rush strings, beam/repeat behavior and weird special mechanics are still provisional or incomplete.
+
+That’s fine.
+
+That’s what the labels are for.
+
+## Giants are still weird
+
+Rush attacks against giants are handled separately because the game handles them separately.
+
+Some can play their full cinematic.
+
+Some hit once and then get rejected.
+
+**Contact only** means exactly that: the opening contact damage. It does not secretly include later knockback or terrain collisions.
+
+If the available data cannot support a modified contact result accurately, the calculator marks it incomplete instead of making something up.
+
+Devilmite Beam also keeps its Wickedness handling, including ranges where the available resistance information leaves more than one supported result.
 
 ## Downloads
 
-Grab **1.1.0** from the [release page](https://github.com/Vendoodle/Sparking-Zero-damage-lab-1.1.0/releases/tag/v1.1.0).
+Get **v1.1.1** from the release page:  
+https://github.com/Vendoodle/Sparking-Zero-damage-lab-1.1.0/releases/tag/v1.1.1
 
-**Windows x64:** download `SparkingZeroCommunityDamageLab-1.1.0-win-x64.zip`, extract it, and open `SparkingZeroCalculator.exe`. It works offline and does not need a separate .NET install or a copy of the game.
+### Windows x64
 
-**Linux x86-64:** use the **r1** package: `SparkingZeroCommunityDamageLab-1.1.0-linux-x64-wine-r1.zip` or `.tar.gz`, extract it, then run `sh ./start.sh`. Wine 11.0 and the app runtime are bundled, so you do not need to install Wine or .NET separately. I validated r1 on Debian 13 x86-64 under X11/Xvfb + Openbox; I have not tested every distro and desktop combination, so I’m not going to pretend I have.
+Download:
 
-**macOS:** there is no validated macOS package in this release.
+`SparkingZeroCommunityDamageLab-1.1.1-win-x64.zip`
 
-Hashes are included with the downloads. GitHub’s automatic **Source code** archives are the repository documentation, not the application itself, so use the release packages above if you actually want the program.
+Extract the whole ZIP and run:
 
-## How this got out of hand
+`SparkingZeroCalculator.exe`
 
-This project started because **Supreme Kai was weirdly strong** and I wanted to know why.
+No separate .NET install or copy of the game is required.
 
-That turned into manual damage testing. Then hidden classes. Then spreadsheets. Then comparing what I was seeing against community data. Then digging through the game files because apparently I needed to know what the numbers were actually doing.
+### Linux x86-64
 
-Eventually the spreadsheet stopped being enough, so now there is software.
+Download the v1.1.1 Linux ZIP or tar.gz, extract it, then run:
 
-Somewhere along the way it picked up a full Character Map, costume and move-change tracking, Wickedness data, giant-specific Rush handling, deeper research pages, and an entire second research console hiding underneath the normal calculator because apparently nobody involved knew when to stop.
+`sh ./start.sh`
 
-Several intermediate builds existed while all of this was changing quickly, but public distribution was effectively interrupted around **1.0.2**. So no, 1.0.3 → 1.0.4 → 1.0.5 → 1.1.0 was not some neat public release cycle. Those were research builds happening while the thing was still mutating.
+Wine 11.0 and the app runtime are bundled. It is the same calculator and data as the Windows build, just running through Wine. The first launch takes a little longer while it sets up its private Wine environment.
 
-**1.1.0 is just the point where I finished what I actually wanted to finish and shipped it.**
+Compatible 64-bit Linux desktop/system libraries are still required; there’s a guide in the package.
 
-This project started because Supreme Kai was weirdly strong.
+### macOS
 
-**Now there is software.**
+There is no validated macOS package.
+
+Both supported builds work offline.
+
+Release hashes are included in `CHECKSUMS.sha256`.
+
+GitHub’s automatic Source code downloads are just the repository documentation, not the application, so grab one of the release packages if you actually want to use the program.
+
+**v1.1.0 is still available** on its original release page:  
+https://github.com/Vendoodle/Sparking-Zero-damage-lab-1.1.0/releases/tag/v1.1.0
+
+If you want to keep both, extract v1.1.1 into its own folder.
